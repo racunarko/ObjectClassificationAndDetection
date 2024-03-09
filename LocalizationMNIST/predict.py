@@ -17,7 +17,7 @@ transform = torchvision.transforms.Compose([
 # bw = grayscale.point(lambda x: 0 if x < 100 else 255, '1')
 # bw.save('sedmica_bw.png')
 
-file = 'test_photos/2/test_02.png'
+file = 'test_photos/7/test_02.png'
 img_arr = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
 img_arr = cv2.bitwise_not(img_arr)
 plt.imshow(img_arr, cmap=plt.cm.binary)
