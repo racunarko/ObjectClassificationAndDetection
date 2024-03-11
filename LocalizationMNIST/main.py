@@ -18,7 +18,7 @@ from net import Net
 from transformations import GaussianBlur
 from transformations import GaussianNoise
 
-epochs = 5
+epochs = 20
 learning_rate = 0.01
 log_interval = 100
 image_size = 64
@@ -76,6 +76,7 @@ def test(network, test_loader, device, verbose=True):
     test_loss_clsf = 0
     test_loss_bbox = 0
     correct = 0
+    correct_bbox = 0
     with torch.no_grad():
         for data, target_class, target_bbox in test_loader:
             data = data.to(device)
@@ -101,17 +102,31 @@ def test(network, test_loader, device, verbose=True):
             pred = pred_class.argmax(dim = 1, keepdim=True)
             correct += pred.eq(target_class.view_as(pred)).sum().item()
             
+            for idx in range(data.size(0)):
+                pred_bbox = [pred_x1[idx], pred_y1[idx], pred_x2[idx], pred_y2[idx]]
+                target_bbox = [target_x1[idx], target_y1[idx], target_x2[idx], target_y2[idx]]
+                
+                pred_bbox = torch.tensor(pred_bbox)
+                target_bbox = torch.tensor(target_bbox)
+                iou = intersection_over_union(pred_bbox.cpu().numpy(), target_bbox.cpu().numpy(), 0.7)
+                if iou:
+                    correct_bbox += 1
+            
     test_loss_clsf /= len(test_loader.dataset)
     test_loss_bbox /= len(test_loader.dataset)
     test_accuracy = 100. * correct / len(test_loader.dataset)
+    test_accuracy_bbox = 100. * correct_bbox / len(test_loader.dataset)
 
     if verbose:
-        print('\n[Test] Classification: Avg. loss: {:.4f}, Accuracy: {:5d}/{:5d} ({:2.2f}%) | Object detection: Avg. loss: {:.4f}\n'.format(
+        print('\n[Test] Classification: Avg. loss: {:.4f}, Accuracy: {:5d}/{:5d} ({:2.2f}%) | Object detection: Avg. loss: {:.4f}, Accuracy: {:5d}/{:5d} ({:2.2f}%)\n'.format(
             test_loss_clsf,
             correct,
             len(test_loader.dataset),
             test_accuracy,
-            test_loss_bbox))
+            test_loss_bbox,
+            correct_bbox,
+            len(test_loader.dataset),
+            test_accuracy_bbox))
 
     return test_loss_clsf, test_accuracy, correct, test_loss_bbox
 
@@ -146,6 +161,23 @@ def train_network(network, optimizer, train_loader, test_loader, device='cpu'):
 def get_number_of_model_parameters(model):
     return sum(p.numel() for p in model.parameters())
 
+def intersection_over_union(pred, target, threshold):
+    x1 = max(pred[0], target[0])
+    y1 = max(pred[1], target[1])
+    x2 = min(pred[2], target[2])
+    y2 = min(pred[3], target[3])
+    
+    if x2 < x1 or y2 < y1:
+        return False
+    
+    intersection = (x2 - x1) * (y2 - y1)
+    pred_area = (pred[2] - pred[0]) * (pred[3] - pred[1])
+    target_area = (target[2] - target[0]) * (target[3] - target[1])
+    
+    iou = intersection / float(pred_area + target_area - intersection)
+    return iou > threshold
+    
+    
 def visualize_predictions(network, device, test_loader, num_images=10):
     network.eval()
     images, predictions, true_labels = [], [], []
