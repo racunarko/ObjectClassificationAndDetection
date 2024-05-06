@@ -31,7 +31,7 @@ network = Net().to('mps')
 examples = enumerate(test_loader)
 batch_idx, (example_data, example_targets, example_bbox) = next(examples)
     
-network.load_state_dict(torch.load('mnist_localization.pth'))
+network.load_state_dict(torch.load('mnist_localization_randomsizes.pth'))
 network.eval()
     
 with torch.no_grad():
@@ -45,9 +45,10 @@ with torch.no_grad():
         image = cv2.rectangle(image, (x1, y1), (x2, y2), (2.5), 2)
 
         plt.subplot(12, 12, idx+1)
-        plt.imshow(image)
+        plt.imshow(image, cmap='gray')
         plt.title(np.argmax(clsf_out[idx, ...].cpu()))
         plt.xticks([])
         plt.yticks([])
 
+    plt.savefig('tested_examples.png')
     plt.show()

@@ -108,7 +108,7 @@ def test(network, test_loader, device, verbose=True):
                 
                 pred_bbox = torch.tensor(pred_bbox)
                 target_bbox = torch.tensor(target_bbox)
-                iou = intersection_over_union(pred_bbox.cpu().numpy(), target_bbox.cpu().numpy(), 0.7)
+                iou = intersection_over_union(pred_bbox.cpu().numpy(), target_bbox.cpu().numpy(), 0.5)
                 if iou:
                     correct_bbox += 1
             
@@ -274,7 +274,7 @@ def main():
     # summary(network, (1, 64, 64), device=device)
     train_losses, train_counter, test_losses_clsf, test_accuracy, test_losses_bbox, test_counter = train_network(network, optimizer, train_loader, test_loader, device)
     
-    torch.save(network.state_dict(), './mnist_localization.pth')
+    torch.save(network.state_dict(), './mnist_localization_randomsizes.pth')
     
     # visualize_predictions(network, device, test_loader, num_images=10)
     

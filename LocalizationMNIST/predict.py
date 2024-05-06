@@ -17,22 +17,23 @@ transform = torchvision.transforms.Compose([
 # bw = grayscale.point(lambda x: 0 if x < 100 else 255, '1')
 # bw.save('sedmica_bw.png')
 
-file = 'test_photos/2/test_03.png'
+file = 'test_photos/3/test_01.png'
 img_arr = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
 img_arr = cv2.bitwise_not(img_arr)
 plt.imshow(img_arr, cmap=plt.cm.binary)
 plt.show()
 
 img_size = 64
-new_arr = cv2.resize(img_arr, (28, 28), interpolation=cv2.INTER_LINEAR)
-plt.imshow(new_arr, cmap='gray')
-plt.show()
+new_arr = cv2.resize(img_arr, (64, 64), interpolation=cv2.INTER_LINEAR)
+# plt.imshow(new_arr, cmap='gray')
+# plt.show()
 
-canvas = np.zeros((img_size, img_size, 1), dtype=np.uint8)
-x_pos = int(np.random.uniform(0, img_size-29))
-y_pos = int(np.random.uniform(0, img_size-29))
-canvas[y_pos:(y_pos+28), x_pos:(x_pos+28), 0] = new_arr
+# canvas = np.zeros((img_size, img_size, 1), dtype=np.uint8)
+# x_pos = int(np.random.uniform(0, img_size-29))
+# y_pos = int(np.random.uniform(0, img_size-29))
+# canvas[y_pos:(y_pos+28), x_pos:(x_pos+28), 0] = new_arr
 
+canvas = new_arr
 plt.imshow(canvas, cmap='gray')
 plt.show()
 
@@ -40,7 +41,7 @@ plt.show()
 normalized = transform(canvas)
 print(normalized.shape)
 model = Net().to('mps')
-model.load_state_dict(torch.load('mnist_localization.pth'))
+model.load_state_dict(torch.load('mnist_localization_randomsizes.pth'))
 model.eval()
 normalized = normalized.unsqueeze(0)
 print(normalized.shape)
